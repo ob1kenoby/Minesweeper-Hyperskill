@@ -1,14 +1,20 @@
 package minesweeper;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class Field {
     private int[][] field;
+    private boolean[][] fog;
     private int mines;
 
     public Field(int size, int mines) {
         this.field = new int[size][size];
         this.mines = mines;
+        this.fog = new boolean[size][size];
+        for (int i = 0; i < size; i++) {
+            Arrays.fill(this.fog[i], false);
+        }
         placeMines();
     }
 
