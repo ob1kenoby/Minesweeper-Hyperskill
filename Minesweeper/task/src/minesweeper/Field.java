@@ -13,7 +13,7 @@ public class Field {
         this.mines = mines;
         this.fog = new boolean[size][size];
         for (int i = 0; i < size; i++) {
-            Arrays.fill(this.fog[i], false);
+            Arrays.fill(this.fog[i], true);
         }
         placeMines();
     }
@@ -83,19 +83,23 @@ public class Field {
     public boolean putFlag(String[] coordinates) {
         int x = Integer.parseInt(coordinates[1]) - 1;
         int y = Integer.parseInt(coordinates[0]) - 1;
-        if (field[x][y] == 10) {
-            field[x][y] = -1;
-            mines--;
-        } else if (field[x][y] == 0) {
-            field[x][y] = -2;
-        } else if (field[x][y] == -2) {
-            field[x][y] = 0;
-        } else if (field[x][y] == -1) {
-            field[x][y] = 10;
-            mines++;
+        if (fog[x][y]) {
+            if (field[x][y] == 10) {
+                field[x][y] = -1;
+                mines--;
+            } else if (field[x][y] == 0) {
+                field[x][y] = -2;
+            } else if (field[x][y] == -2) {
+                field[x][y] = 0;
+            } else if (field[x][y] == -1) {
+                field[x][y] = 10;
+                mines++;
+            } else {
+                return false;
+            }
+            return true;
         } else {
             return false;
         }
-        return true;
     }
 }
