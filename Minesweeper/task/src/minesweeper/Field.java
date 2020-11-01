@@ -69,6 +69,17 @@ public class Field {
         }
     }
 
+    /**
+     * Puts flag on a spot where mine is suspected.
+     * If value of the spot equals:
+     * 10 - there is a mine;
+     * -1 - there is a mine and a flag is placed;
+     * 0 - the spot is empty;
+     * -2 - the spot is empty and a flag is placed;
+     * other value = amount of mines that are placed in the adjusted cells.
+     * @param coordinates
+     * @return true if the flag was placed and false if the flag wasn't placed.
+     */
     public boolean putFlag(String[] coordinates) {
         int x = Integer.parseInt(coordinates[1]) - 1;
         int y = Integer.parseInt(coordinates[0]) - 1;
