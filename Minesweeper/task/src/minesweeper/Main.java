@@ -14,7 +14,7 @@ public class Main {
         while (mineField.hasMinesLeft()) {
             mineField.printField();
             System.out.print("Set/delete mines marks (x and y coordinates):");
-            String[] coordinates = scanner.nextLine().split("\\s");
+            int[] coordinates = parseCoordinates(scanner.nextLine().split("\\s"));
             System.out.println();
             if (!mineField.putFlag(coordinates)) {
                 System.out.println("There is a number here!");
@@ -22,5 +22,13 @@ public class Main {
         }
         System.out.println("Congratulations! You found all mines!");
         scanner.close();
+    }
+
+    private static int[] parseCoordinates(String[] coordinates) {
+        int[] parsedCoordinates = new int[coordinates.length];
+        for (int i = 0; i < coordinates.length; i++) {
+            parsedCoordinates[i] = Integer.parseInt(coordinates[i]) - 1;
+        }
+        return parsedCoordinates;
     }
 }
