@@ -13,8 +13,8 @@ public class Field {
         this.field = new int[size][size];
         this.mines = mines;
         this.fog = new boolean[size][size];
-        for (int i = 0; i < size; i++) {
-            Arrays.fill(this.fog[i], true);
+        for (boolean[] row : this.fog) {
+            Arrays.fill(row, true);
         }
     }
 
@@ -24,16 +24,20 @@ public class Field {
 
     void printField() {
         StringBuilder output = new StringBuilder(" |123456789|\n—│—————————│\n");
-        for (int i = 0; i < this.field.length; i++) {
-            output.append(i + 1);
+        for (int x = 0; x < field.length; x++) {
+            output.append(x + 1);
             output.append("|");
-            for (int spot : this.field[i]) {
-                if (spot == 0 || spot == 10) {
+            for (int y = 0; y < field[x].length; y++) {
+                if (fog[x][y]) {
                     output.append('.');
-                } else if (spot < 0) {
+                } else if (field[x][y] == 0) {
+                    output.append('/');
+                } else if (field[x][y] >= 10) {
+                    output.append('X');
+                } else if (field[x][y] < 0) {
                     output.append('*');
                 } else {
-                    output.append(spot);
+                    output.append(field[x][y]);
                 }
             }
             output.append("|\n");
@@ -84,27 +88,33 @@ public class Field {
      * @param coordinates of the flag
      * @return true if the flag was placed and false if the flag wasn't placed.
      */
-    boolean putFlag(int[] coordinates) {
+    boolean placeFlag(int[] coordinates) {
         int x = coordinates[1];
         int y = coordinates[0];
         if (fog[x][y]) {
             if (field[x][y] == 10) {
                 field[x][y] = -1;
+                switchFog(x, y);
                 mines--;
             } else if (field[x][y] == 0) {
                 field[x][y] = -2;
+                switchFog(x, y);
             } else if (field[x][y] == -2) {
                 field[x][y] = 0;
+                switchFog(x, y);
             } else if (field[x][y] == -1) {
-                field[x][y] = 10;
+                switchFog(x, y);
                 mines++;
             } else {
                 return false;
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    private void switchFog(int x, int y) {
+        fog[x][y] = !fog[x][y];
     }
 
     /**
@@ -122,12 +132,19 @@ public class Field {
         int y = coordinates[0];
         if (field[x][y] == 10) {
             field[x][y] = 11;
+            deFogField();
             return 0;
         } else if (field[x][y] >= 0 && field[x][y] < 10) {
             clearFromFog(coordinates);
             return 1;
         }
         return -1;
+    }
+
+    private void deFogField() {
+        for (boolean[] row : fog) {
+            Arrays.fill(row, false);
+        }
     }
 
     private void clearFromFog(int... coordinates) {
@@ -146,5 +163,23 @@ public class Field {
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @return if all the fog cells are cleared
+     */
+    boolean isNotOpen() {
+        boolean everythingIsOpen = false;
+        outerLoop:
+        for (boolean[] row : fog) {
+            for (boolean spot : row) {
+                everythingIsOpen = !spot;
+                if (!everythingIsOpen) {
+                    break outerLoop;
+                }
+            }
+        }
+        return !everythingIsOpen;
     }
 }
