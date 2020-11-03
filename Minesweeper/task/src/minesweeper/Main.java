@@ -36,7 +36,7 @@ public class Main {
         }
     }
 
-    private stayoutic int[] parseCoordinates(String... coordinates) {
+    private static int[] parseCoordinates(String... coordinates) {
         int[] parsedCoordinates = new int[coordinates.length];
         for (int i = 0; i < coordinates.length; i++) {
             parsedCoordinates[i] = Integer.parseInt(coordinates[i]) - 1;
