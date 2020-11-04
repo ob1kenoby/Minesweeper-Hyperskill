@@ -102,31 +102,16 @@ public class Field {
         int y = coordinates[1];
         if (fog[y][x]) {
             if (field[y][x] == 10) {
-                mines--;
-            } else if (field[y][x] == 0) {
-                switchFlag(x, y);
-            } else if (field[y][x] == -1) {
-                field[y][x] = 0;
-                switchFog(y, x);
-            } else if (field[x][y] == -2) {
-                field[y][x] = 10;
-                switchFog(y, x);
-                mines++;
-            } else {
-                return false;
+                if (flag[y][x]) {
+                    mines++;
+                } else {
+                    mines--;
+                }
             }
-            switchFlag(x, y);
+            flag[y][x] = !flag[y][x];
             return true;
         }
         return false;
-    }
-
-    private void switchFlag(int x, int y) {
-        flag[y][x] = !flag[y][x];
-    }
-
-    private void switchFog(int x, int y) {
-        fog[y][x] = !fog[y][x];
     }
 
     /**
@@ -144,7 +129,7 @@ public class Field {
         int y = coordinates[1];
         if (field[y][x] == 10) {
             field[y][x] = 11;
-            deFogField();
+            clearWholeFieldFromFog();
             return 0;
         } else if (field[y][x] >= 0 && field[y][x] < 10) {
             clearFromFog(coordinates);
@@ -153,7 +138,7 @@ public class Field {
         return -1;
     }
 
-    private void deFogField() {
+    private void clearWholeFieldFromFog() {
         for (boolean[] row : fog) {
             Arrays.fill(row, false);
         }
@@ -166,14 +151,15 @@ public class Field {
         int startY = getStart(y);
         int endX = getEnd(x);
         int endY = getEnd(y);
-        printField();
         for (int i = startY; i <= endY; i++) {
             for (int j = startX; j <= endX; j++) {
                 if (fog[i][j] && field[i][j] == 0) {
                     fog[i][j] = false;
+                    flag[i][j] = false;
                     clearFromFog(j, i);
-                } else if (field[i][j] > -2) {
+                } else if (field[i][j] < 10) {
                     fog[i][j] = false;
+                    flag[i][j] = false;
                 }
             }
         }
