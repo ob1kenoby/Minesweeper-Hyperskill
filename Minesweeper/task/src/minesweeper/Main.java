@@ -14,7 +14,7 @@ public class Main {
         boolean win = true;
         while (mineField.hasMinesLeft() && mineField.isNotOpen()) {
             mineField.printField();
-            System.out.print("Set/unset mines marks or claim a cell as free:");
+            System.out.print("Set/unset mines marks or claim a cell as free: ");
             String[] input = scanner.nextLine().split("\\s");
             int[] coordinates = parseCoordinates(input[0], input[1]);
             System.out.println();

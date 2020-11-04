@@ -6,6 +6,7 @@ import java.util.Random;
 public class Field {
     private int[][] field;
     private boolean[][] fog;
+    private boolean[][] flag;
     private int mines;
     private boolean minesPlaced = false;
 
@@ -13,8 +14,10 @@ public class Field {
         this.field = new int[size][size];
         this.mines = mines;
         this.fog = new boolean[size][size];
-        for (boolean[] row : this.fog) {
-            Arrays.fill(row, true);
+        this.flag = new boolean[size][size];
+        for (int i = 0; i < size; i++) {
+            Arrays.fill(fog[i], true);
+            Arrays.fill(flag[i], false);
         }
     }
 
@@ -24,20 +27,20 @@ public class Field {
 
     void printField() {
         StringBuilder output = new StringBuilder(" |123456789|\n—│—————————│\n");
-        for (int x = 0; x < field.length; x++) {
-            output.append(x + 1);
+        for (int y = 0; y < field.length; y++) {
+            output.append(y + 1);
             output.append("|");
-            for (int y = 0; y < field[x].length; y++) {
-                if (fog[x][y]) {
-                    output.append('.');
-                } else if (field[x][y] == 0) {
-                    output.append('/');
-                } else if (field[x][y] >= 10) {
-                    output.append('X');
-                } else if (field[x][y] < 0) {
+            for (int x = 0; x < field[y].length; x++) {
+                if (flag[y][x]) {
                     output.append('*');
+                } else if (fog[y][x]) {
+                    output.append('.');
+                } else if (field[y][x] == 0) {
+                    output.append('/');
+                } else if (field[y][x] >= 10) {
+                    output.append('X');
                 } else {
-                    output.append(field[x][y]);
+                    output.append(field[y][x]);
                 }
             }
             output.append("|\n");
@@ -46,16 +49,16 @@ public class Field {
         System.out.println(output.toString());
     }
 
-    private boolean fillFieldWithMines(int[] coordinatesOfFirstMove) {
-        int xOfFirstMove = coordinatesOfFirstMove[1];
-        int yOfFirstMove = coordinatesOfFirstMove[0];
+    private boolean fillFieldWithMines(int... coordinatesOfFirstMove) {
+        int xOfFirstMove = coordinatesOfFirstMove[0];
+        int yOfFirstMove = coordinatesOfFirstMove[1];
         Random random = new Random();
         int minesPlaced = 0;
         while (minesPlaced < mines) {
             int x = random.nextInt(9);
             int y = random.nextInt(9);
-            if (field[x][y] < 9 && !(xOfFirstMove == x && yOfFirstMove == y)) {
-                field[x][y] = 10;
+            if (field[y][x] < 9 && !(xOfFirstMove == x && yOfFirstMove == y)) {
+                field[y][x] = 10;
                 raiseSurroundings(x, y);
                 minesPlaced++;
             }
@@ -64,12 +67,12 @@ public class Field {
     }
 
     private void raiseSurroundings(int x, int y) {
-        int startX = (x == 0) ? 0 : x - 1;
-        int startY = (y == 0) ? 0 : y - 1;
-        int endX = (x == 8) ? 8 : x + 1;
-        int endY = (y == 8) ? 8 : y + 1;
-        for (int i = startX; i <= endX; i++) {
-            for (int j = startY; j <= endY; j++) {
+        int startX = getStart(x);
+        int startY = getStart(y);
+        int endX = getEnd(x);
+        int endY = getEnd(y);
+        for (int i = startY; i <= endY; i++) {
+            for (int j = startX; j <= endX; j++) {
                 if (field[i][j] < 9) {
                     field[i][j]++;
                 }
@@ -77,44 +80,53 @@ public class Field {
         }
     }
 
+    private int getEnd(int i) {
+        return (i == 8) ? 8 : i + 1;
+    }
+
+    private int getStart(int i) {
+        return (i == 0) ? 0 : i - 1;
+    }
+
     /**
      * Puts flag on a spot where mine is suspected.
      * If value of the spot equals:
      * 10 - there is a mine;
-     * -1 - there is a mine and a flag is placed;
      * 0 - the spot is empty;
-     * -2 - the spot is empty and a flag is placed;
      * other value = amount of mines that are placed in the adjusted cells.
      * @param coordinates of the flag
      * @return true if the flag was placed and false if the flag wasn't placed.
      */
     boolean placeFlag(int[] coordinates) {
-        int x = coordinates[1];
-        int y = coordinates[0];
-        if (fog[x][y]) {
-            if (field[x][y] == 10) {
-                field[x][y] = -1;
-                switchFog(x, y);
+        int x = coordinates[0];
+        int y = coordinates[1];
+        if (fog[y][x]) {
+            if (field[y][x] == 10) {
                 mines--;
-            } else if (field[x][y] == 0) {
-                field[x][y] = -2;
-                switchFog(x, y);
+            } else if (field[y][x] == 0) {
+                switchFlag(x, y);
+            } else if (field[y][x] == -1) {
+                field[y][x] = 0;
+                switchFog(y, x);
             } else if (field[x][y] == -2) {
-                field[x][y] = 0;
-                switchFog(x, y);
-            } else if (field[x][y] == -1) {
-                switchFog(x, y);
+                field[y][x] = 10;
+                switchFog(y, x);
                 mines++;
             } else {
                 return false;
             }
+            switchFlag(x, y);
             return true;
         }
         return false;
     }
 
+    private void switchFlag(int x, int y) {
+        flag[y][x] = !flag[y][x];
+    }
+
     private void switchFog(int x, int y) {
-        fog[x][y] = !fog[x][y];
+        fog[y][x] = !fog[y][x];
     }
 
     /**
@@ -128,13 +140,13 @@ public class Field {
         if (!minesPlaced) {
             minesPlaced = fillFieldWithMines(coordinates);
         }
-        int x = coordinates[1];
-        int y = coordinates[0];
-        if (field[x][y] == 10) {
-            field[x][y] = 11;
+        int x = coordinates[0];
+        int y = coordinates[1];
+        if (field[y][x] == 10) {
+            field[y][x] = 11;
             deFogField();
             return 0;
-        } else if (field[x][y] >= 0 && field[x][y] < 10) {
+        } else if (field[y][x] >= 0 && field[y][x] < 10) {
             clearFromFog(coordinates);
             return 1;
         }
@@ -148,18 +160,20 @@ public class Field {
     }
 
     private void clearFromFog(int... coordinates) {
-        int x = coordinates[1];
-        int y = coordinates[0];
-        int startX = (x > 0) ? x - 1 : 0;
-        int startY = (y > 0) ? x - 1 : 0;
-        int endX = (x < 8) ? x + 1 : 8;
-        int endY = (y < 8) ? x + 1 : 8;
-        for (int i = startX; i <= endX; i++) {
-            for (int j = startY; j <= endY; j++) {
-                if (field[i][j] > 0 && field[i][j] < 10) {
+        int x = coordinates[0];
+        int y = coordinates[1];
+        int startX = getStart(x);
+        int startY = getStart(y);
+        int endX = getEnd(x);
+        int endY = getEnd(y);
+        printField();
+        for (int i = startY; i <= endY; i++) {
+            for (int j = startX; j <= endX; j++) {
+                if (fog[i][j] && field[i][j] == 0) {
                     fog[i][j] = false;
-                } else if (fog[i][j] && field[i][j] == 0) {
                     clearFromFog(j, i);
+                } else if (field[i][j] > -2) {
+                    fog[i][j] = false;
                 }
             }
         }
